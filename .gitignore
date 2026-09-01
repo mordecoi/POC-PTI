@@ -3,3 +3,6 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+
+# Credenciales - nunca versionar (CLAUDE.md 5)
+src/secrets.h

@@ -16,8 +16,9 @@ pasar al siguiente hasta que el anterior pasa.
 | 2. OLED SSD1306 | ✅ **PASA** | Texto estático OK. Ver gotcha del reloj abajo. |
 | 3. MPU6050 | ✅ **PASA** | ~1.05 g en reposo (dentro de tolerancia, offset de fábrica). REST/MOV OK. |
 | 4. MLX90614 | ⚠️ **PARCIAL — recalibración fina pendiente** | El sensor funciona tras recuperar la EEPROM. Falta la curva de compensación fina, que requiere la carcasa/correa (ver abajo). |
-| 5. MAX30102 (BPM/SpO2) | ⛔ **NO EMPEZADO** | Próximo paso cuando haya tiempo. |
-| 6. Wi-Fi + MQTT | ⛔ pendiente | |
+| 5. MAX30102 (BPM/SpO2) | ⛔ **NO EMPEZADO** | Próximo paso. |
+| 6a. Wi-Fi (asociación) | ✅ **PASA** | Asocia, obtiene IP, RSSI excelente. Quirk: el 1er `WiFi.begin()` post-boot falla, el 2do conecta (retry automático). Client ID MQTT = `wb-24d7cc` (derivado de la MAC `44:BD:8D:24:D7:CC`). |
+| 6b. MQTT | ⛔ pendiente | Depende de tener Mosquitto corriendo en el Edge Gateway. `MQTT_BROKER` en `secrets.h` hay que ponerlo con la IP real del gateway. |
 | 7. Cifrado AES-256 | ⛔ pendiente | |
 | 8. Detección de caídas | ⛔ pendiente | |
 
@@ -78,7 +79,11 @@ a ambiente ~23 °C.
    lectura de BPM estable con el dedo apoyado y SpO2 contra un oxímetro comercial.
    Librería: `sparkfun/SparkFun MAX3010x`. Dirección `0x57`. Ojo con la alimentación:
    el módulo violeta necesita **5 V en VIN** (ver `CLAUDE.md` 2.2).
-3. Hitos 6–8 después.
+3. **Hito 6b — MQTT.** El sketch de Wi-Fi (`src/main.cpp` actual) ya deja la base:
+   asociación + Client ID. Falta: PubSubClient contra Mosquitto, `client.setBufferSize(512)`
+   (gotcha CLAUDE.md 3), publicar JSON en claro al tópico `hospital/{sala}/wearable/{id}/data`
+   y verificar con `mosquitto_sub`. Necesita el gateway corriendo.
+4. Hitos 7–8 después.
 
 Cuando el firmware pase de POCs a estructura real: wrappers de sensores con interfaz
 común (`begin()`/`read()`/`isHealthy()`), constantes a `config.h`, módulos
