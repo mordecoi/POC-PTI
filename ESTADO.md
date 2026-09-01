@@ -116,6 +116,23 @@ pio device monitor            # solo monitor
 Si el puerto está ocupado: cerrar el monitor serie antes de subir. Si la placa no
 aparece: mantener BOOT presionado mientras se conecta el USB.
 
-El sketch actual en `src/main.cpp` es el de **calibración del Hito 4** (arranque
-escalonado: 5 s patrón OLED + 5 s cuenta regresiva + activación MLX, luego stream con
-promedio móvil de 30 s y detección de asentamiento).
+**El sketch actual en `src/main.cpp` es la DEMO integrada** (acelerómetro + temperatura
++ OLED + Wi-Fi + servidor HTTP), para mostrar al profesor. No incluye MAX30102 (Hito 5)
+ni MQTT (Hito 6b).
+
+- OLED muestra IP, temperatura estimada y aceleración + evento.
+- Servidor HTTP en el puerto 80:
+  - `http://<IP>/` → página web con telemetría en vivo (fetch cada 1 s, sin recursos
+    externos, funciona sin internet).
+  - `http://<IP>/data` → JSON con el formato del contrato MQTT (CLAUDE.md 6);
+    `bpm`/`spo2` van `null` hasta el Hito 5.
+  - `http://wearable-pti.local/` → lo mismo vía mDNS.
+- Detección de caída (preview): `|a| > 2.8 g` → `event = "fall"` latcheado 5 s.
+- Fiebre: `temp_central_est > 38.0 °C` (offset provisional +1.2, ver arriba).
+- En la universidad: cambiar SSID/PASS en `src/secrets.h`.
+- **Requisito de red:** notebook y dispositivo en el mismo SSID **sin client isolation**.
+  Hotspots de celular y redes guest suelen bloquear el tráfico device-to-device →
+  usar router de laboratorio propio o hotspot con aislamiento de clientes desactivado.
+
+Los sketches anteriores de cada hito (escáner I²C, OLED, MPU6050, calibración MLX90614,
+asociación Wi-Fi) están en el historial de git — `git log --oneline` y `git show <commit>:src/main.cpp`.
